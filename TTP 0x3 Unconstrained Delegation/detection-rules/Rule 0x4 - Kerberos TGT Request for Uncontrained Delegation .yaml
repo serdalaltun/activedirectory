@@ -1,0 +1,40 @@
+title: Kerberos TGT Request (TGS-REQ) for Unconstrained Delegation
+name: kerberos_tgt_request_for_unconstrained_delegation
+description: Alert Triggers when the Kerberos TGS-REQ request is made for Unconstrained Delegation
+version: 0.1
+ttp: Unconstrained Delegation
+stage: 
+  - Exploitation
+status: experimental
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 10.08.2022
+references:
+  - https://adsecurity.org/?p=1667
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4769
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-service-ticket-operations
+tags:
+  - 
+logsource: 
+  product: windows
+  service: security
+  definition: Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Logon > Audit Kerberos Service Ticket Operations
+detection: 
+  selection: 
+    EventID: 4769
+    Service_Name|contains: "krbtgt" # TGS-REQ for krbtgt account's service
+    Ticket_Options: "0x60810010" # Forwardable, Forwarded, Renewable, Canonicalize, Renewable-ok
+  reduction: 
+    Account_Name|contains: "$" # Exclude machine accounts
+  condition: selection and not reduction
+falsepositives:
+  - Any access to service on the Domain Controllers (High)
+  - Legitimate access to Unconstrained Delegation enabled services (Depends on usage)
+weaknesses:
+  - Attackers can bypass this rule with using a compromised machine account because of the reduction
+fine-tune:
+  - Hex calculations on the Ticket_Options attribute for only Forwarded tickets will reduce the FP rate
+  - Rule precision can be improved by excluding known objects which requests TGT's for Unconstrained Delegation enabled services
+level: high

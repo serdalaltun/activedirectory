@@ -1,0 +1,41 @@
+title: Constrained Delegation (S4U2Proxy) Enabled on Computer Account 
+name: constrained_delegation_(s4u2proxy)_enabled_on_computer_account
+description: Alert triggers when Constrained Delegation (S4U2Proxy) feature enabled through msDS-AllowedToDelegateTo attribute on a computer account
+version: 0.1
+ttp: Constrained Delegation
+stage:
+  - Vulnerability
+  - Persistence
+status: test
+performance: medium
+author:
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 22.08.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-msds-allowedtodelegateto
+  - https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4742
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-computer-account-management
+tags:
+    - attack.persistence
+    - attack.t1098
+logsource:
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Management > Audit Computer Account Management
+detection:
+  selection:
+    EventID: 4742
+    Message|contains: "AllowedToDelegateTo:*domain.fqdn"  # You need to change domain.fqdn with yours
+  reduction:
+    Message|contains: "AllowedToDelegateTo:*<value not set>"  
+  condition: selection and not reduction
+falsepositives:
+  - Legitimate modification on computer objects which enable Constrained Delegation
+weaknesses:
+  - none
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and msDS-AllowedToDelegateTo fields
+level: critical

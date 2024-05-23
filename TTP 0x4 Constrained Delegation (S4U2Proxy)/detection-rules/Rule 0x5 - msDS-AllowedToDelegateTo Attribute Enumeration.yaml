@@ -1,0 +1,61 @@
+title: msDS-AllowedToDelegateTo Attribute Enumeration
+name: msdsallowedtodelegateto_attribute_enumeration
+description: Alert triggers when the msDS-AllowedToDelegateTo attribute is read
+version: 0.1
+ttp: Multiple
+stage: 
+  - Enumeration
+status: experimental
+performance: medium
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 22.08.2022
+references: 
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-msds-allowedtodelegateto
+  - https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access21
+tags:
+    - attack.discovery
+    - attack.t1087.002
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Access
+    - Requires SACL definition with "Read msDS-AllowedToDelegateTo" permission for "Everyone" principal on the object to audit read actions by anyone
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "Read Property"
+    Access_Mask: "0x10" # Hex Access Mask for Read Property
+    Message|contains: "800d94d7-b7a1-42a1-b14d-7cae1423d07f" #msDS-AllowedToDelegateTo attribute Guid
+  reduction: 
+    Account_Name|endswith: "$" # Exclude machine accounts
+  condition: selection and not reduction
+falsepositives: 
+  - Legitimate or product related read actions on msDS-AllowedToDelegateTo attribute (Medium)
+weaknesses:
+  - Attackers can bypass this rule with using machine account because of the reduction rule
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and Properties fields
+  - Decoy accounts can be used with this rule to reduce the FP rate
+  - SACL and rule can be applied only to known vulnerable accounts and decoy accounts
+  - Subject reduction can be applied through SACL with deny entries
+  - Rule can also applied with count-based correlation for the same account or host
+level: medium
+
+# Correlation based on event count for the same account
+# You need to change timespan and condition values according the your environment
+action: correlation
+name: multiple_msdsallowedtodelegateto_attribute_enumeration_by_same_account
+type: event_count
+rule: msdsallowedtodelegateto_attribute_enumeration
+group-by:
+  - Account_Name
+timespan: 5s
+condition:
+  gte: 5
+weaknesses:
+  - Attackers can bypass this correlation by slowing down their enumeration and changing the account

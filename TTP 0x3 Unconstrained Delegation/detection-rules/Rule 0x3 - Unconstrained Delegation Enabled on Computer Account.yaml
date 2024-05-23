@@ -1,0 +1,39 @@
+title: Unconstrained Delegation Enabled on Computer Account 
+name: unconstrained_delegation_enabled_on_computer_account
+description: Alert triggers when Unconstrained Delegation feature disabled through User Account Control attribute on a computer account
+version: 0.1
+ttp: Unconstrained Delegation
+stage:
+  - Vulnerability
+  - Persistence
+status: test
+performance: medium
+author:
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 10.08.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-useraccountcontrol
+  - https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4742
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-computer-account-management
+tags:
+    - attack.persistence
+    - attack.t1098
+logsource:
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Management > Audit Computer Account Management
+detection:
+  selection:
+    EventID: 4742
+    Message|contains: "'Trusted For Delegation' - Enabled"
+  condition: selection
+falsepositives:
+  - Legitimate modification on computer objects which enable Unconstrained Delegation
+weaknesses:
+  - none
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and UserAccountControl fields
+level: critical

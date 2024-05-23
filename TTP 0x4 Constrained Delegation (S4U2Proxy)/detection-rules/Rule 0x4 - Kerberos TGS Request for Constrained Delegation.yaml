@@ -1,0 +1,38 @@
+title: Kerberos TGS Request (TGS-REQ) for Constrained Delegation (S4U2Proxy)
+name: kerberos_tgs_request_for_constrained_delegation_(s4u2proxy)
+description: Alert Triggers when the Kerberos TGS-REQ request is made for Constrained Delegation (S4U2Proxy)
+version: 0.1
+ttp: Constrained Delegation
+stage: 
+  - Exploitation
+status: experimental
+performance: medium
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 22.08.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4769
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-service-ticket-operations
+  - https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html
+tags:
+    - attack.credential_access
+    - attack.t1558
+logsource: 
+  product: windows
+  service: security
+  definition: 
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Logon > Audit Kerberos Service Ticket Operations
+detection: 
+  selection: 
+    EventID: 4769
+    Message|contains: "Transited Services:*domain.fqdn" # You need to change domain.fqdn with yours
+  condition: selection
+falsepositives:
+  - Legitimate access to Constrained Delegation enabled services (Depends on usage)
+weaknesses:
+  - none
+fine-tune:
+  - Rule precision can be improved by excluding known objects which requests TGS's for Constrained Delegation enabled services
+  - Rule precision and performance can be improved if SIEM product successfully parse Message and Transited Services fields
+level: high

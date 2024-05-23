@@ -1,0 +1,59 @@
+title: Kerberos TGS Request (TGS-REQ) with RC4 Encryption (Possible malicious tool usage Mimikatz/Rubeus etc)
+name: kerberos_tgs_request_with_rc4_encryption
+description: Alert triggers when the Kerberos TGS-REQ request is made with insecure RC4 encryption, it mostly triggered by Mimikatz or Rubeus
+version: 0.1
+ttp: Kerberoasting
+stage: 
+  - Exploitation
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.08.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4769
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-service-ticket-operations
+  - https://adsecurity.org/?p=3458
+tags:
+    - attack.credential_access
+    - attack.t1558.003
+logsource: 
+  product: windows
+  service: security
+  definition: Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Logon > Audit Kerberos Service Ticket Operations
+detection: 
+  selection: 
+    EventID: 4769
+    Ticket_Encryption_Type: 
+      - "0x17" # RC4-HMAC
+      - "0x18" # RC4-HMAC-EXP
+  reduction1: 
+    Service_Name|endswith: "$" # Exclude machine accounts (Object)
+  reduction2: 
+    Service_Name: "krbtgt" # Exclude krbtgt account (Object)
+  condition: selection and not (reduction1 or reduction2)
+falsepositives:
+  - Legacy systems (before Win2008/Win7) or applications (Low)
+  - Ticket requests for inter domain or inter forest services (High if trusts enabled)
+weaknesses:
+  - Attackers can bypass this rule with using AES or another secure supported encryption
+fine-tune:
+  - Rule should be combined with Kerberos TGS Request with DES Encyption rule
+  - Rule precision can be improved by excluding known old/legacy systems/apps and users
+  - Rule can also applied with count-based correlation for the same host
+level: high
+
+# Correlation based on event count for the same host
+# You need to change timespan and condition values according the your environment
+action: correlation
+name: multiple_kerberos_tgs_request_with_rc4_encryption_by_same_host
+type: event_count
+rule: kerberos_tgs_request_with_rc4_encryption
+group-by:
+  - Client Address
+timespan: 5s
+condition:
+  gte: 5
+weaknesses:
+  - Attackers can bypass this correlation by slowing down their requests and changing the host

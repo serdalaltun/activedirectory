@@ -1,0 +1,43 @@
+title: msDS-AllowedToDelegateTo Attribute Modification
+name: msdsallowedtodelegateto_attribute_modification
+description: Alert triggers when the msDS-AllowedToDelegateTo attribute is modified
+version: 0.1
+ttp: Multiple
+stage: 
+  - Vulnerability
+  - Persistence
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 22.08.2022
+references: 
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-msds-allowedtodelegateto
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-5136
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-changes
+  - https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html
+tags:
+    - attack.persistence
+    - attack.t1098
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Changes
+    - Requires SACL definition with "Write msDS-AllowedToDelegateTo" permission for "Everyone" principal on the object to audit write actions by anyone.
+detection: 
+  selection: 
+    EventID: 5136
+    LDAP_Display_Name: "msDS-AllowedToDelegateTo"
+    Type: "Value Added"
+  condition: selection
+falsepositives: 
+  - Legitimate or product related write on msDS-AllowedToDelegateTo attribute (Low)
+weaknesses:
+  - none
+fine-tune:
+  - Decoy accounts can be used with this rule to reduce the FP rate
+  - Rule precision can be improved by excluding known objects which modifies msDS-AllowedToDelegateTo attribute
+  - Subject reduction can be applied through SACL with deny entries
+level: high

@@ -1,0 +1,55 @@
+title: Kerberos TGT Request (AS-REQ) with DES Encryption
+name: kerberos_tgt_request_with_des_encryption
+description: Alert triggers when the Kerberos AS-REQ request is made with insecure DES encryption
+version: 0.1
+ttp: Multiple
+stage: 
+  - Exploitation
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 27.07.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/network-security-configure-encryption-types-allowed-for-kerberos
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4768
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-authentication-service
+tags:
+    - attack.credential_access
+    - attack.t1558.004
+logsource: 
+  product: windows
+  service: security
+  definition: Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Logon > Audit Kerberos Authentication Service
+detection: 
+  selection: 
+    EventID: 4768
+    Ticket_Encryption_Type: 
+      - "0x1" # DES-CBC-CRC
+      - "0x3" # DES-CBC-MD5
+  condition: selection
+falsepositives:
+  - Legacy systems (before Win2008/WinVista) or applications (Low)
+  - Ticket requests for inter domain or inter forest services (Medium if trusts enabled)
+weaknesses:
+  - Attackers can bypass this rule with using AES or another secure supported encryption
+fine-tune:
+  - Rule should be combined with Kerberos TGT Request with RC4 Encyption rule
+  - Rule precision can be improved by excluding known old/legacy systems/apps and users
+  - Rule can also applied with count-based correlation for the same host
+level: critical
+
+# Correlation based on event count for the same host
+# You need to change timespan and condition values according the your environment
+action: correlation
+name: multiple_kerberos_tgt_request_with_des_encryption_by_same_host
+type: event_count
+rule: kerberos_tgt_request_with_des_encryption
+group-by:
+  - Client Address
+timespan: 5s
+condition:
+  gte: 5
+weaknesses:
+  - Attackers can bypass this correlation by slowing down their requests and changing the host

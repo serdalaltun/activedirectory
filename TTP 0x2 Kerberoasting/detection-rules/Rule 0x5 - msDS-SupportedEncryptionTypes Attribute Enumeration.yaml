@@ -1,0 +1,59 @@
+title: msDS-SupportedEncryptionTypes Attribute Enumeration
+name: msds_SupportedEncryptionTypes_attribute_enumeration
+description: Alert triggers when the msDS-SupportedEncryptionTypes attribute is read
+version: 0.1
+ttp: Multiple
+stage: 
+  - Enumeration
+status: experimental
+performance: low
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.08.2022
+references: 
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-msds-supportedencryptiontypes
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Access
+    - Requires SACL definition with "msDS-SupportedEncryptionTypes" permission for "Everyone" principal on the object to audit read actions by anyone.
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "Read Property"
+    Access_Mask: "0x10" # Hex Access Mask for Read Property
+    Message|contains: "20119867-1d04-4ab7-9371-cfc3d5df0afd" # msDS-SupportedEncryptionTypes attribute Guid
+  reduction1:
+    Object_Type: "%{bf967aba-0de6-11d0-a285-00aa003049e2}" # Filter only user accounts with using user class Guid (Object)
+  reduction2:
+    Account_Name|endswith: "$" # Exclude machine accounts (Subject)
+  condition: selection and reduction1 and not reduction2
+falsepositives: 
+  - Legitimate or product related read actions on msDS-SupportedEncryptionTypes attribute (Medium)
+weaknesses:
+  - Attackers can bypass this rule with using a compromised machine account because of the reduction2
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and Properties fields
+  - Decoy accounts can be used with this rule to reduce the FP rate
+  - SACL and rule can be applied only to known vulnerable accounts and decoy accounts
+  - Subject reduction can be applied through SACL with deny entries
+  - Rule can also applied with count-based correlation for the same account or host
+level: medium
+
+# Correlation based on event count for the same account
+# You need to change timespan and condition values according the your environment
+action: correlation
+name: multiple_msds_SupportedEncryptionTypes_attribute_enumeration_by_same_account
+type: event_count
+rule: msds_SupportedEncryptionTypes_attribute_enumeration
+group-by:
+  - Account_Name
+timespan: 5s
+condition:
+  gte: 5
+weaknesses:
+  - Attackers can bypass this correlation by slowing down their enumeration and changing the account

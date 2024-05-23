@@ -1,0 +1,40 @@
+title: DES Encryption Enabled on User Account
+name: des_encryption_enabled_on_user_account
+description: Alert triggers when the DES encryption enabled through User Account Control attribute on a user accounts
+version: 0.1
+ttp: Multiple
+stage: 
+  - Vulnerability
+status: test
+performance: medium
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.08.2022
+references:
+  - https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/decrypting-the-selection-of-supported-kerberos-encryption-types/ba-p/1628797
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4738
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-service-ticket-operations
+  - https://docs.microsoft.com/tr-tr/archive/blogs/askds/hunting-down-des-in-order-to-securely-deploy-kerberos
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-user-account-management
+  - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-ada3/01cf3969-bc7f-4294-9223-f15668557f5f
+tags:
+    - attack.credential_access
+    - attack.t1558.003
+logsource: 
+  product: windows
+  service: security
+  definition: 
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Management > Audit User Account Management
+detection: 
+  selection: 
+    EventID: 4738
+    Message|contains : "'Use DES Key Only' - Enabled" 
+  condition: selection
+falsepositives:
+  - Legitimate modification on user objects which enable DES encryption (Low)
+weaknesses:
+  - none
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and UserAccountControl fields
+level: critical

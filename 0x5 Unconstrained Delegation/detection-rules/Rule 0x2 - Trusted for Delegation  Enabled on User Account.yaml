@@ -1,0 +1,39 @@
+title: Trusted for Delegation Enabled on User Account
+name: trusted_for_delegation_enabled_on_user_account
+description: Alert triggers when Unconstrained Delegation feature Enabled through User Account Control attribute on a user account
+version: 0.1
+ttp: Unconstrained Delegation
+stage: 
+  - Vulnerability
+  - Persistence
+status: test
+performance: medium
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 10.08.2022
+references: 
+  - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/5f490eb3-1217-4688-a731-852a626377c4
+  - https://docs.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-csomspt/b9bd8040-6404-4687-87f4-baa7b91b8988
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4738
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-user-account-management
+tags:
+    - attack.persistence
+    - attack.t1098
+logsource: 
+  product: windows
+  service: security
+  definition: 
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Management > Audit User Account Management
+detection: 
+  selection: 
+    EventID: 4738
+    Message|contains: "'Trusted For Delegation' - Enabled"
+  condition: selection
+falsepositives: 
+  - Legitimate modification on user objects which enabled Trusted this user for delegation to any service
+weaknesses:
+  - none
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and UserAccountControl fields
+level: high

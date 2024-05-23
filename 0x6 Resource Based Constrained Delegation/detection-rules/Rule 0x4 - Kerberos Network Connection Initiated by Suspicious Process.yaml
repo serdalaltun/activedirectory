@@ -1,0 +1,39 @@
+title: Kerberos Network Connection Initiated by Suspicious Process (Possible usage of Rubeus, Mimikatz, Kekeo etc)
+name: kerberos_network_connection_initiated_by_suspicious_process
+description: Alert triggers when the Kerberos connection is initiated to port 88 on KDC by a process other than LSASS (Possible usage of Rubeus, Mimikatz, Kekeo, etc)
+version: 0.1
+ttp: Multiple
+stage: 
+  - Exploitation
+status: test
+performance: medium
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 02.09.2022
+references:
+  - https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
+  - https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid=90003
+tags:
+    - attack.credential_access
+    - attack.t1558
+logsource: 
+  product: windows
+  service: sysmon
+  definition:
+    - You need to enable Sysmon on your endpoints and enable it with proper configuration, or you can implement this rule to current EDR or related product
+detection:
+  selection:
+    EventCode: 3 # Sysmon Network connection event
+    DestinationPort: 88 # Kerberos port
+  reduction:
+    Image|endswith: "lsass.exe" # Should be case insensitive on product
+  condition: selection and not reduction
+falsepositives:
+  - Other known processes configured to access Kerberos port (Low)
+weaknesses:
+  - Attacker can bypass this rule with using Lsass process (builtin functionality) to request and dump tickets
+fine-tune:
+  - Rule precision can be improved by excluding known processes which communicates with port 88
+  - Rule precision and performance can be improved by adding DC IP addresses as Destination
+level: critical

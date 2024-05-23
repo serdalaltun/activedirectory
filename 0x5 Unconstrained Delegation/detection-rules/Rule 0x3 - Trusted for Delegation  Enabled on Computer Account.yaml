@@ -1,0 +1,40 @@
+title: Trusted for Delegation Enabled on Computer Account 
+name: preauthentication_disabled_on_computer_account
+description: Alert triggers when Unconstrained Delegation feature disabled through User Account Control attribute on a computer account
+version: 0.1
+ttp: Unconstrained Delegation
+stage:
+  - Vulnerability
+  - Persistence
+status: test
+performance: medium
+author:
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 10.08.2022
+references:
+  - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-kile/4ce3ddc0-aaaa-4a1b-b48b-62a07e906926
+  - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-kile/e720dd17-0703-4ce4-ab66-7ccf2d72c579#gt_4a7d4ea8-4b3d-4055-84a6-6c61c2ee68ec
+  - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-kile/ae60c948-fda8-45c2-b1d1-a71b484dd1f7
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4742
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-computer-account-management
+tags:
+    - attack.persistence
+    - attack.t1098
+logsource:
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Management > Audit Computer Account Management
+detection:
+  selection:
+    EventID: 4742
+    Message|contains: "'Trusted For Delegation' - Enabled"
+  condition: selection
+falsepositives:
+  - Legitimate modifications on computer objects which enabled Trusted this computer for delegation to any service
+weaknesses:
+  - none
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and UserAccountControl fields
+level: critical

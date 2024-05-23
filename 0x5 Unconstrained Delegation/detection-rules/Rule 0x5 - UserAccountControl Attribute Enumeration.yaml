@@ -1,0 +1,42 @@
+title: UserAccountControl Attribute Enumeration
+name: userAccountControl_attribute_enumeration
+description: Alert triggers when the UserAccountControl attribute is read
+version: 0.1
+ttp: Multiple
+stage: 
+  - Enumeration
+status: experimental
+performance: medium
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 10.08.2022
+references: 
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-useraccountcontrol
+  - https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+tags:
+    -
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Access
+    - Requires SACL definition with "Read User Account Control" permission for "Everyone" principal on the object to audit read actions by anyone
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "Read Property"
+    Access_Mask: "0x10" # Hex Access Mask for Read Property
+    Message|contains: "bf967a68-0de6-11d0-a285-00aa003049e2" #UserAccountControl attribute Guid
+  reduction: 
+    Account_Name|endswith: "$" # Exclude machine accounts, especially DCs
+  condition: selection and not reduction
+falsepositives: 
+  - Legitimate or product related read actions on UserAccountControl attribute (High)
+weaknesses:
+  - Attackers can bypass this rule with using machine account because of the reduction rule
+fine-tune:
+  - More detailed examination can be provided with object types.
+level: medium

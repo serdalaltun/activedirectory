@@ -1,0 +1,60 @@
+title: UserAccountControl Attribute Enumeration
+name: userAccountControl_attribute_enumeration
+description: Alert triggers when the UserAccountControl attribute is read
+version: 0.1
+ttp: Multiple
+stage: 
+  - Enumeration
+status: experimental
+performance: medium
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 08.03.2023
+references: 
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-useraccountcontrol
+  - https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+tags:
+    - attack.persistence
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Access
+    - Requires SACL definition with "Read User Account Control" permission for "Everyone" principal on the object to audit read actions by anyone
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "Read Property"
+    AccessMask: "0x10" # Hex Access Mask for Read Property
+    ObjectType: "%{bf967a86-0de6-11d0-a285-00aa003049e2}" #UserAccountControl attribute Guid
+  reduction: 
+    Account_Name|endswith: "$" # Exclude machine accounts, especially DCs
+  condition: selection and not reduction
+falsepositives: 
+  - Legitimate or product related read actions on UserAccountControl attribute (High)
+weaknesses:
+  - Attackers can bypass this rule with using machine account because of thSe reduction rule
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and Properties fields
+  - Decoy accounts can be used with this rule to reduce the FP rate
+  - SACL and rule can be applied only to known vulnerable accounts and decoy accounts
+  - Subject reduction can be applied through SACL with deny entries
+  - Rule can also applied with count-based correlation for the same account or host
+level: medium
+
+# Correlation based on event count for the same account
+# You need to change timespan and condition values according the your environment
+action: correlation
+name: multiple_object_userAccountControl_enumeration_by_same_account
+type: event_count
+rule: userAccountControl_attribute_enumeration
+group-by:
+  - Account_Name
+timespan: 5s
+condition:
+  gte: 5
+weaknesses:
+  - Attackers can bypass this correlation by slowing down their enumeration and changing the account

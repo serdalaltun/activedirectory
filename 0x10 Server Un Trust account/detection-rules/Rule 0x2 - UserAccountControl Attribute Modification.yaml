@@ -1,0 +1,45 @@
+title: UserAccountControl Attribute Modification
+name: userAccountControl_attribute_modification
+description: Alert triggers when the User Account Control attribute is modified
+version: 0.1
+ttp: Multiple
+stage: 
+  - Vulnerability
+  - Persistence
+status: experimental
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 08.03.2023
+references: 
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-useraccountcontrol
+  - https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-5136
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-changes
+tags:
+    - attack.persistence
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Changes
+    - Requires SACL definition with "Write User Account Control" permission for "Everyone" principal on the object to audit write actions by anyone
+detection: 
+  selection: 
+    EventID: 5136
+    AttributeLDAPDisplayName: "userAccountControl"
+    Type: "Value Added"
+    ObjectClass: "computer"
+  condition: selection
+falsepositives: 
+  - Legitimate or product related write actions on UserAccountControl attribute (Medium)
+  - UserAccountControl modification for flags other than SERVER_TRUST_ACCOUNT
+weaknesses:
+  - none
+fine-tune:
+  - Hex calculations on the Value attribute for SERVER_TRUST_ACCOUNT (0x2000) will reduce the FP rate
+  - Decoy accounts can be used with this rule to reduce the FP rate
+  - Rule precision can be improved by excluding known objects which modifies UserAccountControl attribute
+  - Subject reduction can be applied through SACL with deny entries
+level: high

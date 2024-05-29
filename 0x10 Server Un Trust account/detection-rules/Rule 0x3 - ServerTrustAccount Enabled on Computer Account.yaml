@@ -1,0 +1,37 @@
+title: Server Trust Account Enabled on Computer Account
+name: server_trust_account_enabled_on_computer_account
+description: Alert triggers when ServerTrustAcoount feature Enabled through User Account Control attribute on a computer account
+version: 0.1
+ttp: Server Trust Acoount
+stage:
+  - Vulnerability
+  - Persistence
+status: test
+performance: medium
+author:
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 09.03.2023
+references:
+  - https://learn.microsoft.com/en-us/windows/win32/adschema/a-useraccountcontrol
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4742
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-computer-account-management
+tags:
+    - attack.persistence
+logsource:
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Management > Audit Computer Account Management
+detection:
+  selection:
+    EventID: 4742
+    Message|contains: 'Server Trust Account' - Enabled
+  condition: selection
+falsepositives:
+  - Legitimate modifications on computer objects which enabled
+weaknesses:
+  - none
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and UserAccountControl fields
+level: high

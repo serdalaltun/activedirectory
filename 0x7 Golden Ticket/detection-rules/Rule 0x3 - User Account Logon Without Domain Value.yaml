@@ -1,0 +1,33 @@
+title: User Account Logon Without Domain Value
+name: user_logon_without_domain_value
+description: Alert triggers when the User account logan without Domain value
+version: 0.1
+ttp: Golden Ticket
+stage: 
+  - Exploitation
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 11.11.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624
+  - https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-logon
+tags:
+    - attack.credential_access
+    - attack.t1558.001
+logsource: 
+  product: windows
+  service: security
+  definition: Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Logon/Logoff > Audit Logon
+detection: 
+  selection: 
+    EventID: 4624
+    Account_Domain: "" # Domain value is empty
+  reduction:
+    Account_Name|endswith: "$" # Exclude machine accounts (Object)
+  condition: selection and not reduction
+falsepositives:
+  - none
+level: medium

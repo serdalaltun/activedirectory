@@ -1,0 +1,33 @@
+title: Security ID Control on User Account Logon
+name: securityıd_control_on_user_account_logon
+description: Alert triggers when the User Security ID is diffrent 
+version: 0.1
+ttp: Golden Ticket
+stage: 
+  - Exploitation
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 08.11.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624
+  - https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-logon
+tags:
+    - attack.credential_access
+    - attack.t1558.001
+logsource: 
+  product: windows
+  service: security
+  definition: Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Logon/Logoff > Audit Logon
+detection: 
+  selection: 
+    EventID: 4624
+    Security_ID|endswith: "-500" # Administrator SID value
+  reduction:
+    Account_Name: "administrator" # Exclude Administrator accounts (Object)
+  condition: selection and not reduction
+falsepositives:
+  - none
+level: medium

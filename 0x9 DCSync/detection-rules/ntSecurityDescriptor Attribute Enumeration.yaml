@@ -1,0 +1,59 @@
+title: ntSecurityDescriptor Attribute Enumeration
+name: ntsecuritydescriptor_attribute_enumeration
+description: Alert triggers when the ntSecurityDescriptor attribute is read
+version: 0.1
+ttp: DCSync
+stage: 
+  - Enumeration
+status: experimental
+performance: low
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 25.07.2023
+references: 
+  - https://learn.microsoft.com/en-us/windows/win32/adschema/a-ntsecuritydescriptor
+  - https://docs.microsoft.com/en-us/iis/configuration/system.webserver/security/authentication/windowsauthentication/extendedprotection/spn
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Access
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "Read Property"
+    Access_Mask: "0x10" # Hex Access Mask for Read Property
+    Message|contains: "19195a5b-6da0-11d0-afd3-00c04fd930c9" #DomainDns attribute Guid
+  reduction1:
+    Object_Type: "%{bf967aba-0de6-11d0-a285-00aa003049e2}" # Filter only user accounts with using user class Guid (Object)
+  reduction2:
+    Account_Name|endswith: "$" # Exclude machine accounts (Subject)
+  condition: selection and reduction1 and not reduction2
+falsepositives: 
+  - Legitimate or product related read actions on ntSecurityDescriptor attribute (Medium)
+weaknesses:
+  - Attackers can bypass this rule with using a compromised machine account because of the reduction2
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and Properties fields
+  - Decoy accounts can be used with this rule to reduce the FP rate
+  - SACL and rule can be applied only to known vulnerable accounts and decoy accounts
+  - Subject reduction can be applied through SACL with deny entries
+  - Rule can also applied with count-based correlation for the same account or host
+level: medium
+
+# Correlation based on event count for the same account
+# You need to change timespan and condition values according the your environment
+action: correlation
+name: multiple_servicePrincipalName_attribute_enumeration_by_same_account
+type: event_count
+rule: servicePrincipalName_attribute_enumeration
+group-by:
+  - Account_Name
+timespan: 5s
+condition:
+  gte: 5
+weaknesses:
+  - Attackers can bypass this correlation by slowing down their enumeration and changing the account

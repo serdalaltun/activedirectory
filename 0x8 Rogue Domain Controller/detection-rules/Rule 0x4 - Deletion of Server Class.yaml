@@ -1,0 +1,32 @@
+title: Deletion of Server Class
+name: deletion_of_server_class
+description: Alert triggers when the deletion of Server Class
+version: 0.1
+ttp: DCShadow
+stage: 
+  - Persistence
+status: experimental
+performance: low
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.03.2023
+references: 
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+  - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adls/a7727850-655e-450f-9ab2-bf9d96821f7a
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Access
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "DELETE"
+    Access_Mask: "0x10000" # Hex Access Mask for DELETE
+    Object_Type: "%{bf967a92-0de6-11d0-a285-00aa003049e2}" # Class Server Guid 
+  condition: selection
+falsepositives: 
+  - none
+level: medium

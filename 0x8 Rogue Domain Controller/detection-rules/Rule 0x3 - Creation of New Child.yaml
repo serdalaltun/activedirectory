@@ -1,0 +1,34 @@
+title: Creation of new child
+name: creation_of_new_child
+description: Alert triggers when the creation of new Child
+version: 0.1
+ttp: DCShadow
+stage: 
+  - Persistence
+status: experimental
+performance: low
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.03.2023
+references: 
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+  - https://learn.microsoft.com/en-us/windows/win32/adschema/c-serverscontainer
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Access
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "Create Child"
+    Access_Mask: "0x1" # Hex Access Mask for Create Child 
+    Object_Type: "%{f780acc0-56f0-11d1-a9c6-0000f80367c1}" # Servers-Container class Guid
+  condition: selection
+falsepositives: 
+  - none
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and Properties fields
+level: medium

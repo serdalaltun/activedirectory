@@ -1,0 +1,37 @@
+title: Deletion of nTDSDSA
+name: deletion_of_ntdsdsa
+description: Alert triggers when the deletion of nTDSDSA 
+version: 0.1
+ttp: DCShadow
+stage: 
+  - Persistence
+status: experimental
+performance: low
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.03.2023
+references: 
+  - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-srpl/4c62c74a-b55c-47d1-b575-33395a727d97
+  - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adsc/5a79757d-2412-4846-bd7c-7585838a5a44
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > DS Access > Audit Directory Service Access
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "DELETE"
+    Access_Mask: "0x10000" # Hex Access Mask for DELETE
+    Object_Type: "%{f0f8ffab-1191-11d0-a060-00aa006c33ed}" # Class nTDSDSA Guid
+  condition: selection
+falsepositives: 
+  - Legitimate or product related delete actions on nTDSDSA attribute
+weaknesses:
+  - Attackers can bypass this rule with using a compromised machine account because of the reduction
+fine-tune:
+  - Rule performance can be improved if SIEM product successfully parse Message and Properties fields
+level: medium

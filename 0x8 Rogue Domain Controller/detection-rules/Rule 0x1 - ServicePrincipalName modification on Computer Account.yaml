@@ -1,0 +1,33 @@
+title: ServicePrincipalName modification on Computer Account
+name: serviceprincipalname_modification_on_computer_account
+description: Alert triggers when DCShadow Attack ServicePrincipalName attribute modification on a Computer Account
+version: 0.1
+ttp: DCShadow
+stage: 
+  - Persistence
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.03.2023
+references:
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4742
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-computer-account-management
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-serviceprincipalname
+  - https://docs.microsoft.com/en-us/iis/configuration/system.webserver/security/authentication/windowsauthentication/extendedprotection/spn
+tags:
+    - attack.defense_evasion
+    - attack.t1207
+logsource: 
+  product: windows
+  service: security
+  definition: Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Management > Audit Computer Account Management
+detection: 
+  selection: 
+    EventID: 4742
+    Message|contains: "Service Principal Names:*E3514235-4B06-11D1-AB04-00C04FC2DCD2" 
+  condition: selection
+falsepositives:
+  - none
+level: medium

@@ -215,4 +215,3 @@ Constrained Delegation saldırısının farklı fazlarda tespiti için aşağıd
 ## Authors
 
 - Serdal Tarkan Altun
-- Furkan Özer

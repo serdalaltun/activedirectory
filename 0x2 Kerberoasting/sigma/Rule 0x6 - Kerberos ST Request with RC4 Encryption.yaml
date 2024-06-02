@@ -1,0 +1,34 @@
+title: Kerberos TGS Request (TGS-REQ) with RC4 Encryption (Possible malicious tool usage Mimikatz/Rubeus etc)
+description: Alert triggers when the Kerberos TGS-REQ request is made with insecure RC4 encryption, it mostly triggered by Mimikatz or Rubeus
+version: 0.1
+ttp: Kerberoasting
+stage: 
+  - Exploitation
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.08.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4769
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-service-ticket-operations
+tags:
+    - attack.credential_access
+    - attack.t1558.003
+logsource: 
+  product: windows
+  service: security
+  definition: Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Account Logon > Audit Kerberos Service Ticket Operations
+detection: 
+  selection: 
+    EventID: 4769
+    Ticket_Encryption_Type: 
+      - "0x17" # RC4-HMAC
+      - "0x18" # RC4-HMAC-EXP
+  reduction: 
+    Account_Name|endswith: "$" # Exclude machine accounts, especially DCs
+  condition: selection and not reduction
+falsepositives:
+  - Legacy systems (before Win2008/WinVista) or applications (Medium)
+level: medium

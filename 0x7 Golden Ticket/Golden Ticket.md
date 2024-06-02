@@ -183,4 +183,3 @@ Golden Ticket saldırısının farklı fazlarda tespiti için aşağıdaki Event
 ## Authors
 
 - Serdal Tarkan Altun
-- Furkan Özer

@@ -1,0 +1,35 @@
+title: msDS-SupportedEncryptionTypes Attribute Enumeration
+description: Alert triggers when the msDS-SupportedEncryptionTypes attribute is read
+version: 0.1
+ttp: Multiple
+stage: 
+  - Enumeration
+status: experimental
+performance: low
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.08.2022
+references: 
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-msds-supportedencryptiontypes
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Ds acces > Audit Directory Service Access
+    - Requires SACL definition with "msDS-SupportedEncryptionTypes" permission for "Everyone" principal on the object to audit read actions by anyone.
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "Read Property"
+    Access_Mask: "0x10" # Hex Access Mask for Read Property
+    Message|contains: "20119867-1d04-4ab7-9371-cfc3d5df0afd" #msDS-SupportedEncryptionTypes attribute Guid
+  reduction: 
+    Account_Name|endswith: "$" # Exclude machine accounts, especially DCs
+  condition: selection and not reduction
+falsepositives: 
+  - none
+level: medium

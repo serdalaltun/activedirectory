@@ -1,0 +1,35 @@
+title: ServicePrincipalName Attribute Enumeration
+description: Alert triggers when the ServicePrincipalName attribute is read
+version: 0.1
+ttp: Multiple
+stage: 
+  - Enumeration
+status: experimental
+performance: low
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.08.2022
+references: 
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-serviceprincipalname
+  - https://docs.microsoft.com/en-us/iis/configuration/system.webserver/security/authentication/windowsauthentication/extendedprotection/spn
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4662
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access
+
+logsource: 
+  product: windows
+  service: security
+  definition:
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Ds acces > Audit Directory Service Access
+detection: 
+  selection: 
+    EventID: 4662
+    Accesses: "Read Property"
+    Access_Mask: "0x10" # Hex Access Mask for Read Property
+    Message|contains: "f3a64788-5306-11d1-a9c5-0000f80367c1" #ServicePrincipalName attribute Guid
+  reduction: 
+    Account_Name|endswith: "$" # Exclude machine accounts, especially DCs
+  condition: selection and not reduction
+falsepositives: 
+  - none
+level: medium

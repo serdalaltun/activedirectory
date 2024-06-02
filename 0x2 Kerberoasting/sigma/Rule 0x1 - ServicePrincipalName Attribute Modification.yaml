@@ -1,0 +1,36 @@
+title: Servicepricipalname Added
+description: Alert triggers when the serviceprincipalname Added
+version: 0.1
+ttp: Kerberoasting
+stage: 
+  - Vulnerability
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.08.2022
+references:
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-ldapdisplayname
+  - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-5136
+  - https://docs.microsoft.com/en-us/windows/win32/adschema/a-serviceprincipalname
+tags:
+    - attack.credential_access
+    - attack.t1558.003
+logsource: 
+  product: windows
+  service: security
+  definition: 
+    - Requires SACL definition with "Write msDS-SupportedEncryptionTypes" permission for "Everyone" principal on the object to audit write actions by anyone.
+    - Enable required policy - Computer Configuration > Policies > Windows Settings > Security Settings > Advanced Audit Policy > Audit Policy > Ds acces > Audit Directory Service Changes
+detection: 
+  selection: 
+    EventID: 5136
+    LDAP_Display_Name: servicePrincipalName
+    Type: Value Added
+  reduction:
+    Account_Name|endswith: "$" # Exclude machine accounts, especially DCs
+  condition: selection and not reduction
+falsepositives:
+  - none
+level: medium

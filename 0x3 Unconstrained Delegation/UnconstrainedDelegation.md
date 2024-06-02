@@ -219,4 +219,3 @@ Unconstrained Delegation saldırısının farklı fazlarda tespiti için aşağ�
 ## Authors
 
 - Serdal Tarkan Altun
-- Furkan Özer

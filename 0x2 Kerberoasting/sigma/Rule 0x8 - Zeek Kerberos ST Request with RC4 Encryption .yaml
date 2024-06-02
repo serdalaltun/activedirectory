@@ -1,0 +1,36 @@
+title: Kerberos Network TGS Request (TGS-REQ) with RC4 Encryption 
+description: Alert triggers when the Kerberos TGS-REQ request is made with insecure RC4 encryption
+version: 0.1
+ttp: Kerberoasting
+stage: 
+  - Exploitation
+status: test
+performance: high
+author: 
+  - linkedin: serdal-tarkan-altun
+  - twitter: TarkanSerdal
+date: 01.08.2022
+references:
+  - https://blog.harmj0y.net/redteaming/kerberoasting-revisited/
+  - https://adsecurity.org/?p=3458
+  - https://docs.zeek.org/en/master/scripts/base/protocols/krb/main.zeek.html
+tags:
+  - attack.credential_access
+  - attack.t1558.003
+logsource: 
+  product: zeek
+  service: kerberos
+detection: 
+  selection: 
+    request_type: 'TGS'
+    cipher: 'rc4-hmac'
+  reduction1: 
+    service|endswith: 
+      - '$'
+  reduction2: 
+    service|startswith: 
+      - "krbtgt/"
+  condition: selection and not (reduction1 or reduction2) # Exclude machine accounts and krbtgt account, especially DCs
+falsepositives:
+  - normal enterprise SPN requests activity
+level: medium

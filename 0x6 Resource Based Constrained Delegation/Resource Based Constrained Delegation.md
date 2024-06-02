@@ -202,4 +202,3 @@ Resource Based Constrained Delegation saldırısının farklı fazlarda tespiti 
 ## Authors
 
 - Serdal Tarkan Altun
-- Furkan Özer

@@ -241,3 +241,7 @@ Server Trust Account saldırısının farklı fazlarda tespiti için aşağıdak
 - https://pentestlab.blog/2022/01/17/domain-persistence-machine-account/
 - https://learn.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties
 - https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/dd302fd1-0aa7-406b-ad91-2a6b35738557
+
+## Authors
+
+- Serdal Tarkan Altun
